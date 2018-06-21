@@ -85,7 +85,7 @@
                     </div>
                 </div>
                 <div class="col text-right">
-                    <h2>Funds: {{ funds }}</h2>
+                    <h2>Funds: {{ funds.toFixed(2) }}</h2>
                 </div>
             </div>
             <hr>
@@ -239,11 +239,12 @@
                             "private_key" : response.data.private_key,
                             "public_key" : response.data.public_key,
                         };
+                        vm.funds = response.data.funds;
                     })
                     .catch(error => {
                         vm.dataLoading = false;
                         vm.success = null;
-                        vm.error = error.data.message;
+                        vm.error = error.response.data.message;
                         vm.wallet = null;
                     })
                 },
@@ -255,7 +256,7 @@
                     .then(response => {
                         vm.dataLoading = false;
                         vm.error = null;
-                        vm.success = "Created wallet";
+                        vm.success = "Loaded wallet successfully";
                         vm.wallet = {
                             "private_key" : response.data.private_key,
                             "public_key" : response.data.public_key,
@@ -265,30 +266,45 @@
                     .catch(error => {
                         vm.dataLoading = false;
                         vm.success = null;
-                        vm.error = error.data.message;
+                        vm.error = error.response.data.message;
                         vm.wallet = null;
                     })
                 },
                 onSendTx: function () {
                     // Send Transaction to backend
-                    if (Math.random() > 0.5) {
-                        this.error = null
-                        this.success = 'Successfully stored transaction!'
-                        this.funds = this.funds - this.outgoingTx.amount
-                    } else {
-                        this.success = null;
-                        this.error = 'Something went wrong!'
-                    }
+                    let vm = this;
+                    vm.dataLoading = true;
+                    axios.post("/transaction", {
+                        recipient: vm.outgoingTx.recipient,
+                        amount: vm.outgoingTx.amount,
+                    })
+                    .then(response => {
+                        vm.dataLoading = false;
+                        vm.success = response.data.message;
+                        vm.funds = response.data.funds;
+                    })
+                    .catch(error => {
+                        vm.success = null;
+                        vm.error = error.response.data.message;
+                        vm.dataLoading = false;
+                    })
                 },
                 onMine: function() {
-                    if (Math.random() > 0.5) {
-                        this.error = null
-                        this.success = 'Successfully mined coins!'
-                        this.funds = this.funds + 10
-                    } else {
-                        this.success = null;
-                        this.error = 'Something went wrong!'
-                    }
+                    let vm = this;
+                    vm.dataLoading = true;
+                    axios.post("/mine")
+                    .then(response => {
+                        console.log(response)
+                        vm.dataLoading = false;
+                        vm.success = response.data.message;
+                        vm.error = null;
+                        vm.funds = response.data.funds;
+                    })
+                    .catch(error => {
+                        vm.success = null;
+                        vm.error = error.response.data.message;
+                        vm.dataLoading = false;
+                    })
                 },
                 onLoadData: function () {
                     if (this.view === 'chain') {
@@ -297,12 +313,13 @@
                         vm.dataLoading = true;
                         axios.get("/chain")
                             .then((response) => {
+                                console.log(response)
                                 vm.blockchain = response.data;
-                                vm.dataLoading = true;
+                                vm.dataLoading = false;
                             })
                             .catch(error => {
                                 vm.error = "Something went wrong";
-                                vm.dataLoading = true;
+                                vm.dataLoading = false;
                             })
                     } else {
                         // Load transaction data
@@ -311,11 +328,11 @@
                         axios.get("/transactions")
                             .then((response) => {
                                 vm.openTransactions = response.data;
-                                vm.dataLoading = true;
+                                vm.dataLoading = false;
                             })
                             .catch(error => {
                                 vm.error = "Something went wrong";
-                                vm.dataLoading = true;
+                                vm.dataLoading = false;
                             })
                     }
                 }
