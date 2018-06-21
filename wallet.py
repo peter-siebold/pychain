@@ -22,8 +22,10 @@ class Wallet:
                     f.write(self.public_key)
                     f.write("\n")
                     f.write(self.private_key)
+                return True
             except (IOError, IndexError):
                 print("An error occured while trying to save the wallet")
+                return False
 
     def load_keys(self):
         try:
@@ -34,8 +36,10 @@ class Wallet:
 
                 self.public_key = public_key
                 self.private_key = private_key
+            return True
         except (IOError, IndexError):
             print("ERROR: Could not load the wallet from file")
+            return False
     
     def generate_keys(self):
         private_key = RSA.generate(1024, Crypto.Random.new().read)
