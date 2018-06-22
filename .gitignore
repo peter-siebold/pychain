@@ -1,4 +1,4 @@
 .vscode/
 __pycache__/
-blockchain.txt
+blockchain-*.txt
 wallet.txt
