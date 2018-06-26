@@ -5,7 +5,10 @@ requirements
     pycrypto
     flask
     flask-cors
+    requests
 
 installation
     ```pip install pycrypto```
     ```pip install flask```
+    ```pip install flask-cors```
+    ```pip install requests```
