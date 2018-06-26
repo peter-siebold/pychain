@@ -269,7 +269,7 @@
                     .then(response => {
                         vm.dataLoading = false;
                         vm.error = null;
-                        vm.success = "Loaded wallet successfully";
+                        vm.success = "Loaded wallet successfully" + "Private Key: " + response.data.private_key + "Public Key: " + response.data.public_key;;
                         vm.wallet = {
                             "private_key" : response.data.private_key,
                             "public_key" : response.data.public_key,
