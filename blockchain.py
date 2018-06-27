@@ -48,7 +48,10 @@ class Blockchain:
                 updated_blockchain = []
                 for block in blockchain:
                     converted_tx = [Transaction(
-                        tx["sender"], tx["recipient"], tx["signature"], tx["amount"]) for tx in block["transactions"]]
+                        tx["sender"],
+                        tx["recipient"],
+                        tx["signature"],
+                        tx["amount"]) for tx in block["transactions"]]
 
                     updated_block = Block(
                         block["index"],
@@ -68,7 +71,10 @@ class Blockchain:
 
                 for tx in open_transactions:
                     updated_transaction = Transaction(
-                        tx["sender"], tx["recipient"], tx["signature"], tx["amount"])
+                        tx["sender"],
+                        tx["recipient"],
+                        tx["signature"],
+                        tx["amount"])
                     updated_transactions.append(updated_transaction)
 
                 self.__open_transactions = updated_transactions
@@ -82,8 +88,16 @@ class Blockchain:
         """Persist Blockchain data to the filesystem"""
         try:
             with open("blockchain-{}.txt".format(self.node_id), mode="w") as f:
-                savable_chain = [block.__dict__ for block in [Block(block_el.index, block_el.previous_hash, [
-                                                                    tx.__dict__ for tx in block_el.transactions], block_el.proof, block_el.timestamp) for block_el in self.__chain]]
+                savable_chain = [
+                    block.__dict__ for block in [
+                        Block(block_el.index,
+                              block_el.previous_hash, [
+                                  tx.__dict__ for tx in block_el.transactions
+                              ],
+                              block_el.proof,
+                              block_el.timestamp) for block_el in self.__chain
+                    ]
+                ]
                 f.write(json.dumps(savable_chain))
                 f.write("\n")
                 savable_tx = [tx.__dict__ for tx in self.__open_transactions]
@@ -103,8 +117,8 @@ class Blockchain:
         return proof
 
     def get_balance(self, sender=None):
-        if sender == None:
-            if self.public_key == None:
+        if sender is None:
+            if self.public_key is None:
                 return None
             participant = self.public_key
         else:
@@ -146,7 +160,7 @@ class Blockchain:
                     url = "http://{}/broadcast-transaction".format(node)
                     try:
                         response = requests.post(url, json={
-                                    "sender": sender, "recipient": recipient, "amount": amount, "signature": signature})
+                            "sender": sender, "recipient": recipient, "amount": amount, "signature": signature})
                         if response.status_code == 400 or response.status_code == 500:
                             print("Transaction declined, needs resovling")
                             return False
@@ -193,7 +207,8 @@ class Blockchain:
         for node in self.__peer_nodes:
             url = "http://{}/broadcast-block".format(node)
             converted_block = block.__dict__.copy()
-            converted_block["transactions"] = [tx.__dict__ for tx in converted_block["transactions"]]
+            converted_block["transactions"] = [
+                tx.__dict__ for tx in converted_block["transactions"]]
             try:
                 response = requests.post(url, json={
                     "block": converted_block
@@ -207,14 +222,17 @@ class Blockchain:
         return block
 
     def add_block(self, block):
-        transactions = [Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"]) for tx in block["transactions"]]
-        proof_is_valid = Verification.valid_proof(transactions[:-1], block["previous_hash"], block["proof"])
+        transactions = [Transaction(
+            tx["sender"], tx["recipient"], tx["signature"], tx["amount"]) for tx in block["transactions"]]
+        proof_is_valid = Verification.valid_proof(
+            transactions[:-1], block["previous_hash"], block["proof"])
         hashes_match = hash_block(self.chain[-1]) == block["previous_hash"]
 
         if not proof_is_valid or not hashes_match:
             return False
 
-        converted_block = Block(block["index"], block["previous_hash"], transactions, block["proof"], block["timestamp"] )
+        converted_block = Block(
+            block["index"], block["previous_hash"], transactions, block["proof"], block["timestamp"])
         self.__chain.append(converted_block)
         stored_transactions = self.__open_transactions[:]
         for itx in block["transactions"]:
@@ -236,7 +254,8 @@ class Blockchain:
             try:
                 response = requests.get(url)
                 node_chain = response.json()
-                node_chain = [Block( block["index"], block["previous_hash"], [Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"]) for tx in block["transactions"]], block["proof"], block["timestamp"]) for block in node_chain]
+                node_chain = [Block(block["index"], block["previous_hash"], [Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"])
+                                                                             for tx in block["transactions"]], block["proof"], block["timestamp"]) for block in node_chain]
                 # node_chain.transactions = [Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"]) for tx in node_chain["transactions"]]
                 node_chain_length = len(node_chain)
                 local_chain_length = len(self.chain)
